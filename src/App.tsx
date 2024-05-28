@@ -4,18 +4,25 @@ import { MdSettings } from "react-icons/md";
 import { SettingsWindow } from "./settings";
 import { useSettings } from "./settings-hook";
 import TextareaAutosize from "react-textarea-autosize";
+import { Editable } from "./editable";
 
-function ChatPiece({ role, content }: ChatHistory) {
+function ChatPiece({
+	role,
+	content,
+	set,
+}: ChatHistory & {
+	set: ((value: string) => void) | undefined;
+}) {
 	return (
 		<div className="p-2 border border-gray-300 rounded-md my-2 w-full">
 			<p className="text-sm font-semibold">
 				{role === "user" ? "You" : "Assistant"}
 			</p>
-			{content.split("\n").map((line, index) => (
-				<p key={index} className="text-base">
-					{line}
-				</p>
-			))}
+			{set ? (
+				<Editable content={content} set={set} />
+			) : (
+				<div className="whitespace-pre-wrap">{content}</div>
+			)}
 		</div>
 	);
 }
@@ -58,10 +65,24 @@ function App() {
 					</div>
 				</div>
 				{history.map((chat, index) => (
-					<ChatPiece key={index} {...chat} />
+					<ChatPiece
+						key={index}
+						{...chat}
+						set={(v) => {
+							setHistory((history) => {
+								const newHistory = history.slice();
+								newHistory[index] = { ...newHistory[index], content: v };
+								return newHistory;
+							});
+						}}
+					/>
 				))}
 				{responseStream && (
-					<ChatPiece role="assistant" content={responseStream} />
+					<ChatPiece
+						role="assistant"
+						content={responseStream}
+						set={undefined}
+					/>
 				)}
 				<TextareaAutosize
 					minRows={2}
