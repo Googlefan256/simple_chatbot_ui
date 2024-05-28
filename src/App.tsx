@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { ChatHistory, generate } from "./api";
 import { MdSettings } from "react-icons/md";
-import { SettingsWindow, useSettings } from "./settings";
+import { SettingsWindow } from "./settings";
+import { useSettings } from "./settings-hook";
+import TextareaAutosize from "react-textarea-autosize";
 
 function ChatPiece({ role, content }: ChatHistory) {
 	return (
@@ -61,12 +63,14 @@ function App() {
 				{responseStream && (
 					<ChatPiece role="assistant" content={responseStream} />
 				)}
-				<textarea
+				<TextareaAutosize
+					minRows={2}
+					placeholder="Type your message here..."
 					onChange={(e) => setUserPrompt(e.target.value)}
 					value={userPrompt || ""}
 					className={`border border-gray-300 rounded-md w-full mt-1 ${
 						settings.dark ? "bg-gray-800 text-white" : ""
-					}`}
+					} resize-y`}
 				/>
 				{speedInfo && (
 					<p className="text-sm text-gray-500">
