@@ -8,24 +8,24 @@ function ChatPiece({ role, content }: ChatHistory) {
 			<p className="text-sm font-semibold">
 				{role === "user" ? "You" : "Assistant"}
 			</p>
-			{
-				content.split("\n").map((line, index) => (
-					<p key={index} className="text-base">
-						{line}
-					</p>
-				))
-			}
+			{content.split("\n").map((line, index) => (
+				<p key={index} className="text-base">
+					{line}
+				</p>
+			))}
 		</div>
 	);
 }
 
 interface Settings {
 	api_base_url: string;
+	seed: number;
 }
 
 function defaultSettings(): Settings {
 	return {
 		api_base_url: "http://googlechrome:8888",
+		seed: 1234,
 	};
 }
 
@@ -66,6 +66,20 @@ function SettingsWindow({
 						className="border border-gray-300 rounded-md w-full p-2 mt-1"
 					/>
 				</label>
+				<label className="block mt-2">
+					<span className="text-sm font-semibold">Seed</span>
+					<input
+						type="number"
+						value={settings.seed}
+						onChange={(e) =>
+							setSettings({
+								...settings,
+								seed: parseInt(e.target.value),
+							})
+						}
+						className="border border-gray-300 rounded-md w-full p-2 mt-1"
+					/>
+				</label>
 				<div className="flex justify-center">
 					<button
 						onClick={() => setSettings(defaultSettings())}
@@ -91,6 +105,10 @@ function App() {
 	const [responseStream, setResponseStream] = useState<string | null>(null);
 	const [settingsOpen, setSettingsOpen] = useState(false);
 	const [settings, setSettings] = useState<Settings>(defaultSettings());
+	const [speedInfo, setSpeedInfo] = useState<{
+		count: number;
+		time: number;
+	} | null>(null);
 	return (
 		<>
 			<SettingsWindow
@@ -118,9 +136,16 @@ function App() {
 				<textarea
 					onChange={(e) => setUserPrompt(e.target.value)}
 					value={userPrompt || ""}
-					className="border border-gray-300 rounded-md w-full mb-2 mt-1"
+					className="border border-gray-300 rounded-md w-full mt-1"
 				/>
-				<div className="flex justify-center">
+				{speedInfo && (
+					<p className="text-sm text-gray-500">
+						Last response took {speedInfo.time.toFixed(2)} seconds and{" "}
+						{speedInfo.count} tokens, speed:{" "}
+						{(speedInfo.count / speedInfo.time).toFixed(2)} tokens/second
+					</p>
+				)}
+				<div className="flex justify-center mt-2">
 					<button
 						onClick={async () => {
 							if (!userPrompt) return;
@@ -131,11 +156,15 @@ function App() {
 								...history,
 								{ role: "user", content: userPrompt },
 							]);
+							const startTime = Date.now();
+							let tokens = 0;
 							let resText = "";
-							for await (const response of generate(settings.api_base_url, [
-								...history,
-								{ role: "user", content: userPrompt },
-							])) {
+							for await (const response of generate(
+								settings.api_base_url,
+								[...history, { role: "user", content: userPrompt }],
+								settings.seed,
+							)) {
+								tokens++;
 								resText += response;
 								setResponseStream(resText);
 							}
@@ -144,6 +173,10 @@ function App() {
 								...history,
 								{ role: "assistant", content: resText },
 							]);
+							setSpeedInfo({
+								count: tokens,
+								time: (Date.now() - startTime) / 1000,
+							});
 						}}
 						disabled={responseStream !== null}
 						className="bg-blue-500 text-white px-4 py-2 rounded-md disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
@@ -152,7 +185,9 @@ function App() {
 					</button>
 					<button
 						onClick={() => {
-							if (responseStream === null) setHistory([]);
+							if (responseStream !== null) return;
+							setHistory([]);
+							setSpeedInfo(null);
 						}}
 						disabled={responseStream !== null}
 						className="bg-red-500 text-white px-4 py-2 rounded-md ml-2 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
