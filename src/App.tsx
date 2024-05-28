@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChatHistory, generate } from "./api";
 import { MdSettings } from "react-icons/md";
+import { SettingsWindow, useSettings } from "./settings";
 
 function ChatPiece({ role, content }: ChatHistory) {
 	return (
@@ -17,109 +18,36 @@ function ChatPiece({ role, content }: ChatHistory) {
 	);
 }
 
-interface Settings {
-	api_base_url: string;
-	seed: number;
-}
-
-function defaultSettings(): Settings {
-	return {
-		api_base_url: "http://googlechrome:8888",
-		seed: 1234,
-	};
-}
-
-function SettingsWindow({
-	open,
-	onClose,
-	settings,
-	setSettings,
-}: {
-	open: boolean;
-	onClose: () => void;
-	settings: Settings;
-	setSettings: (settings: Settings) => void;
-}) {
-	return (
-		<div
-			className={`fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center ${
-				open ? "" : "hidden"
-			}`}
-			onClick={onClose}
-		>
-			<div
-				className="bg-white p-4 rounded-md"
-				onClick={(e) => e.stopPropagation()}
-			>
-				<h1 className="text-xl font-semibold mb-2">Settings</h1>
-				<label className="block">
-					<span className="text-sm font-semibold">API Base URL</span>
-					<input
-						type="text"
-						value={settings.api_base_url}
-						onChange={(e) =>
-							setSettings({
-								...settings,
-								api_base_url: e.target.value,
-							})
-						}
-						className="border border-gray-300 rounded-md w-full p-2 mt-1"
-					/>
-				</label>
-				<label className="block mt-2">
-					<span className="text-sm font-semibold">Seed</span>
-					<input
-						type="number"
-						value={settings.seed}
-						onChange={(e) =>
-							setSettings({
-								...settings,
-								seed: parseInt(e.target.value),
-							})
-						}
-						className="border border-gray-300 rounded-md w-full p-2 mt-1"
-					/>
-				</label>
-				<div className="flex justify-center">
-					<button
-						onClick={() => setSettings(defaultSettings())}
-						className="bg-blue-500 text-white px-4 py-2 rounded-md mt-2"
-					>
-						Reset to default
-					</button>
-					<button
-						onClick={onClose}
-						className="bg-red-500 text-white px-4 py-2 ml-2 rounded-md mt-2"
-					>
-						Close
-					</button>
-				</div>
-			</div>
-		</div>
-	);
-}
-
 function App() {
 	const [history, setHistory] = useState<ChatHistory[]>([]);
 	const [userPrompt, setUserPrompt] = useState<string | null>(null);
 	const [responseStream, setResponseStream] = useState<string | null>(null);
 	const [settingsOpen, setSettingsOpen] = useState(false);
-	const [settings, setSettings] = useState<Settings>(defaultSettings());
+	const [settings, setSettings, reset] = useSettings();
 	const [speedInfo, setSpeedInfo] = useState<{
 		count: number;
 		time: number;
 	} | null>(null);
 	return (
-		<>
+		<div
+			className={`min-h-screen ${settings.dark ? "bg-black text-white" : ""}`}
+		>
 			<SettingsWindow
 				open={settingsOpen}
 				onClose={() => setSettingsOpen(false)}
 				settings={settings}
 				setSettings={setSettings}
+				reset={reset}
 			/>
 			<div className="md:p-8 p-4">
 				<div className="flex justify-between">
-					<h1 className="text-2xl font-semibold mb-4">Simple Chatbot UI</h1>
+					<h1
+						className={`text-2xl font-semibold mb-4 ${
+							settings.dark ? "text-white" : ""
+						}`}
+					>
+						Simple Chatbot UI
+					</h1>
 					<div className="flex items-center">
 						<MdSettings
 							className="text-2xl hover:text-blue-500 cursor-pointer"
@@ -136,7 +64,9 @@ function App() {
 				<textarea
 					onChange={(e) => setUserPrompt(e.target.value)}
 					value={userPrompt || ""}
-					className="border border-gray-300 rounded-md w-full mt-1"
+					className={`border border-gray-300 rounded-md w-full mt-1 ${
+						settings.dark ? "bg-gray-800 text-white" : ""
+					}`}
 				/>
 				{speedInfo && (
 					<p className="text-sm text-gray-500">
@@ -196,7 +126,7 @@ function App() {
 					</button>
 				</div>
 			</div>
-		</>
+		</div>
 	);
 }
 
