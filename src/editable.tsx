@@ -13,7 +13,7 @@ export function Editable({
 	useEffect(() => {
 		setContentStable(content);
 		// this is because we just need to set the contentStable once
-	}, []);
+	}, []); // eslint-disable-line react-hooks/exhaustive-deps
 	return (
 		<span>
 			<div

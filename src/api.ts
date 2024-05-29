@@ -6,7 +6,7 @@ function decSafe(dec: TextDecoder, value: Uint8Array) {
 	}
 }
 
-export async function* generate(
+export async function createStream(
 	base: string,
 	chat: ChatHistory[],
 	seed: number,
@@ -19,10 +19,13 @@ export async function* generate(
 			},
 			body: JSON.stringify(chat),
 		})
-	).body?.getReader();
-	if (!stream) {
-		return;
-	}
+	).body;
+	return stream;
+}
+
+export async function* readStream(
+	stream: ReadableStreamDefaultReader<Uint8Array>,
+) {
 	let stack = new Uint8Array();
 	const dec = new TextDecoder(undefined, {
 		fatal: true,

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ChatHistory, generate } from "./api";
+import { useRef, useState } from "react";
+import { ChatHistory, createStream, readStream } from "./api";
 import { MdSettings } from "react-icons/md";
 import { SettingsWindow } from "./settings";
 import { useSettings } from "./settings-hook";
@@ -37,6 +37,8 @@ function App() {
 		count: number;
 		time: number;
 	} | null>(null);
+	const [cancel, setCancel] = useState(() => () => {});
+	const submitRef = useRef<HTMLButtonElement | null>(null);
 	return (
 		<div
 			className={`min-h-screen ${settings.dark ? "bg-black text-white" : ""}`}
@@ -88,11 +90,41 @@ function App() {
 					minRows={2}
 					placeholder="Type your message here..."
 					onChange={(e) => setUserPrompt(e.target.value)}
+					onKeyDown={(e) => {
+						if (e.key === "Enter" && e.ctrlKey) {
+							e.preventDefault();
+							e.stopPropagation();
+							e.currentTarget?.blur();
+							submitRef.current?.click();
+							const event = new KeyboardEvent("keydown", {
+								key: "Enter",
+							});
+							e.target.dispatchEvent(event);
+						}
+					}}
 					value={userPrompt || ""}
 					className={`border border-gray-300 rounded-md w-full mt-1 ${
 						settings.dark ? "bg-gray-800 text-white" : ""
 					} resize-y`}
 				/>
+				<p>
+					<kbd
+						className={`${
+							settings.dark ? "bg-gray-800 text-white" : "bg-gray-200"
+						} px-1 rounded-md`}
+					>
+						Ctrl
+					</kbd>{" "}
+					+{" "}
+					<kbd
+						className={`${
+							settings.dark ? "bg-gray-800 text-white" : "bg-gray-200"
+						} px-1 rounded-md`}
+					>
+						Enter
+					</kbd>{" "}
+					to send
+				</p>
 				{speedInfo && (
 					<p className="text-sm text-gray-500">
 						Last response took {speedInfo.time.toFixed(2)} seconds and{" "}
@@ -102,6 +134,7 @@ function App() {
 				)}
 				<div className="flex justify-center mt-2">
 					<button
+						ref={submitRef}
 						onClick={async () => {
 							if (!userPrompt) return;
 							if (responseStream) return;
@@ -114,11 +147,25 @@ function App() {
 							const startTime = Date.now();
 							let tokens = 0;
 							let resText = "";
-							for await (const response of generate(
+							const stream = await createStream(
 								settings.api_base_url,
 								[...history, { role: "user", content: userPrompt }],
 								settings.seed,
-							)) {
+							);
+							const reader = stream?.getReader();
+							if (!reader) {
+								setResponseStream(null);
+								setHistory((history) => [
+									...history,
+									{ role: "assistant", content: "Unknown Error" },
+								]);
+								return;
+							}
+							setCancel(() => () => {
+								reader.cancel();
+								setCancel(() => () => {});
+							});
+							for await (const response of readStream(reader)) {
 								tokens++;
 								resText += response;
 								setResponseStream(resText);
@@ -148,6 +195,13 @@ function App() {
 						className="bg-red-500 text-white px-4 py-2 rounded-md ml-2 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
 					>
 						Clear Chat
+					</button>
+					<button
+						onClick={responseStream ? cancel : () => {}}
+						disabled={!responseStream}
+						className="bg-yellow-500 text-white px-4 py-2 rounded-md ml-2 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
+					>
+						Cancel Generation
 					</button>
 				</div>
 			</div>
