@@ -21,7 +21,8 @@ function ChatPiece({
 			{set ? (
 				<Editable content={content} set={set} />
 			) : (
-				<div className="whitespace-pre-wrap">{content}</div>
+				// fold long text
+				<div className="whitespace-pre-wrap break-words">{content}</div>
 			)}
 		</div>
 	);

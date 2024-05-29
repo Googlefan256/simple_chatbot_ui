@@ -17,7 +17,7 @@ export function Editable({
 	return (
 		<span>
 			<div
-				className="whitespace-pre-wrap outline-none"
+				className="whitespace-pre-wrap outline-none break-words"
 				contentEditable={true}
 				suppressContentEditableWarning
 				onKeyUpCapture={(t) => {
