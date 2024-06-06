@@ -51,4 +51,5 @@ export async function* readStream(
 export interface ChatHistory {
 	role: "user" | "assistant";
 	content: string;
+	image?: string;
 }

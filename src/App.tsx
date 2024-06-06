@@ -9,6 +9,7 @@ import { Editable } from "./editable";
 function ChatPiece({
 	role,
 	content,
+	image,
 	set,
 }: ChatHistory & {
 	set: ((value: string) => void) | undefined;
@@ -18,6 +19,7 @@ function ChatPiece({
 			<p className="text-sm font-semibold">
 				{role === "user" ? "You" : "Assistant"}
 			</p>
+			{image && <img src={image} alt="user image" className="w-24 h-24" />}
 			{set ? (
 				<Editable content={content} set={set} />
 			) : (
@@ -31,6 +33,7 @@ function ChatPiece({
 function App() {
 	const [history, setHistory] = useState<ChatHistory[]>([]);
 	const [userPrompt, setUserPrompt] = useState<string | null>(null);
+	const [userImage, setUserImage] = useState<string | null>(null);
 	const [responseStream, setResponseStream] = useState<string | null>(null);
 	const [settingsOpen, setSettingsOpen] = useState(false);
 	const [settings, setSettings, reset] = useSettings();
@@ -40,6 +43,7 @@ function App() {
 	} | null>(null);
 	const [cancel, setCancel] = useState(() => () => {});
 	const submitRef = useRef<HTMLButtonElement | null>(null);
+	const imageSelectRef = useRef<HTMLInputElement | null>(null);
 	return (
 		<div
 			className={`min-h-screen ${settings.dark ? "bg-black text-white" : ""}`}
@@ -87,6 +91,9 @@ function App() {
 						set={undefined}
 					/>
 				)}
+				{userImage && (
+					<img src={userImage} alt="user image" className="w-24 h-24" />
+				)}
 				<TextareaAutosize
 					minRows={2}
 					placeholder="Type your message here..."
@@ -107,6 +114,21 @@ function App() {
 					className={`border border-gray-300 rounded-md w-full mt-1 ${
 						settings.dark ? "bg-gray-800 text-white" : ""
 					} resize-y`}
+				/>
+				<input
+					type="file"
+					accept="image/*"
+					onChange={(e) => {
+						const file = e.target.files?.[0];
+						if (!file) return;
+						const reader = new FileReader();
+						reader.onload = (e) => {
+							setUserImage(e.target?.result as string);
+						};
+						reader.readAsDataURL(file);
+					}}
+					className="hidden"
+					ref={imageSelectRef}
 				/>
 				<p>
 					<kbd
@@ -139,11 +161,16 @@ function App() {
 						onClick={async () => {
 							if (!userPrompt) return;
 							if (responseStream) return;
+							setUserImage(null);
 							setUserPrompt(null);
 							setResponseStream("...");
 							setHistory((history) => [
 								...history,
-								{ role: "user", content: userPrompt },
+								{
+									role: "user",
+									content: userPrompt,
+									image: userImage || undefined,
+								},
 							]);
 							const startTime = Date.now();
 							let tokens = 0;
@@ -191,6 +218,7 @@ function App() {
 							if (responseStream !== null) return;
 							setHistory([]);
 							setSpeedInfo(null);
+							setUserImage(null);
 						}}
 						disabled={responseStream !== null}
 						className="bg-red-500 text-white px-4 py-2 rounded-md ml-2 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
@@ -203,6 +231,15 @@ function App() {
 						className="bg-yellow-500 text-white px-4 py-2 rounded-md ml-2 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
 					>
 						Cancel Generation
+					</button>
+					<button
+						onClick={() =>
+							responseStream ? null : imageSelectRef.current?.click()
+						}
+						className="bg-blue-500 text-white px-4 py-2 rounded-md ml-2 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
+						disabled={responseStream !== null}
+					>
+						Upload Image
 					</button>
 				</div>
 			</div>
