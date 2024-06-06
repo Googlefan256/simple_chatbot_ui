@@ -98,6 +98,16 @@ function App() {
 					minRows={2}
 					placeholder="Type your message here..."
 					onChange={(e) => setUserPrompt(e.target.value)}
+					onDrop={(e) => {
+						e.preventDefault();
+						const file = e.dataTransfer.files?.[0];
+						if (!file) return;
+						const reader = new FileReader();
+						reader.onload = (e) => {
+							setUserImage(e.target?.result as string);
+						};
+						reader.readAsDataURL(file);
+					}}
 					onKeyDown={(e) => {
 						if (e.key === "Enter" && e.ctrlKey) {
 							e.preventDefault();
