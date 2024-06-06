@@ -187,7 +187,14 @@ function App() {
 							let resText = "";
 							const stream = await createStream(
 								settings.api_base_url,
-								[...history, { role: "user", content: userPrompt }],
+								[
+									...history,
+									{
+										role: "user",
+										content: userPrompt,
+										image: userImage || undefined,
+									},
+								],
 								settings.seed,
 							);
 							const reader = stream?.getReader();
