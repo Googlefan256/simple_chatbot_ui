@@ -14,6 +14,7 @@ export async function createStream(
 		model: "custom",
 		stream: true,
 		seed,
+		max_tokens: 4096,
 	});
 	return stream;
 }

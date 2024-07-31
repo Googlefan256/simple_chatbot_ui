@@ -199,7 +199,7 @@ function App() {
 							);
 							setCancel(() => () => {
 								stream?.controller.abort();
-								setResponseStream(null);
+								setResponseStream(() => null);
 							});
 							for await (const response of stream) {
 								const part = response.choices[0].delta.content;
