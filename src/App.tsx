@@ -202,9 +202,12 @@ function App() {
 								setResponseStream(null);
 							});
 							for await (const response of stream) {
-								tokens++;
-								resText += response.choices[0].delta.content;
-								setResponseStream(resText);
+								const part = response.choices[0].delta.content;
+								if (part) {
+									tokens++;
+									resText += part;
+									setResponseStream(resText);
+								}
 							}
 							setResponseStream(null);
 							setHistory((history) => [

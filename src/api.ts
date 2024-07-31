@@ -5,7 +5,6 @@ export async function createStream(
 	chat: ChatHistory[],
 	seed: number,
 ) {
-	console.log("a");
 	const stream = await new OpenAI({
 		baseURL,
 		apiKey: "null",
@@ -16,7 +15,6 @@ export async function createStream(
 		stream: true,
 		seed,
 	});
-	console.log(stream);
 	return stream;
 }
 
