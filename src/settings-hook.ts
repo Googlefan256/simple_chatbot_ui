@@ -8,7 +8,7 @@ export interface Settings {
 
 function defaultSettings(): Settings {
 	return {
-		api_base_url: "http://googlechrome:8888",
+		api_base_url: "http://localhost:8080",
 		seed: 1234,
 		dark: false,
 	};

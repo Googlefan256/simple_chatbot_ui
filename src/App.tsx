@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { ChatHistory, createStream, readStream } from "./api";
+import { ChatHistory, createStream } from "./api";
 import { MdSettings } from "react-icons/md";
 import { SettingsWindow } from "./settings";
 import { useSettings } from "./settings-hook";
@@ -197,22 +197,12 @@ function App() {
 								],
 								settings.seed,
 							);
-							const reader = stream?.getReader();
-							if (!reader) {
-								setResponseStream(null);
-								setHistory((history) => [
-									...history,
-									{ role: "assistant", content: "Unknown Error" },
-								]);
-								return;
-							}
-							setCancel(() => () => {
-								reader.cancel();
-								setCancel(() => () => {});
+							setCancel(() => {
+								stream?.controller.abort();
 							});
-							for await (const response of readStream(reader)) {
+							for await (const response of stream) {
 								tokens++;
-								resText += response;
+								resText += response.choices[0].delta.content;
 								setResponseStream(resText);
 							}
 							setResponseStream(null);

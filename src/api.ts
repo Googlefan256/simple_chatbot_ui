@@ -1,51 +1,17 @@
-function decSafe(dec: TextDecoder, value: Uint8Array) {
-	try {
-		return dec.decode(value);
-	} catch (e) {
-		return null;
-	}
-}
+import { OpenAI } from "openai";
 
 export async function createStream(
-	base: string,
+	baseURL: string,
 	chat: ChatHistory[],
 	seed: number,
 ) {
-	const stream = (
-		await fetch(`${base}/stream?seed=${seed}`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify(chat),
-		})
-	).body;
-	return stream;
-}
-
-export async function* readStream(
-	stream: ReadableStreamDefaultReader<Uint8Array>,
-) {
-	let stack = new Uint8Array();
-	const dec = new TextDecoder(undefined, {
-		fatal: true,
+	const stream = await new OpenAI({ baseURL }).chat.completions.create({
+		messages: chat,
+		model: "custom",
+		stream: true,
+		seed,
 	});
-	while (true) {
-		const { done, value } = await stream.read();
-		if (done) {
-			break;
-		}
-		const v = decSafe(dec, new Uint8Array([...stack, ...value]));
-		if (!v) {
-			console.warn("Invalid UTF-8 sequence, adding to stack...");
-			stack = new Uint8Array([...stack, ...value]);
-			continue;
-		}
-		yield v;
-	}
-	if (stack.length > 0) {
-		yield new TextDecoder().decode(stack);
-	}
+	return stream;
 }
 
 export interface ChatHistory {
