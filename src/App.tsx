@@ -197,8 +197,9 @@ function App() {
 								],
 								settings.seed,
 							);
-							setCancel(() => {
+							setCancel(() => () => {
 								stream?.controller.abort();
+								setResponseStream(null);
 							});
 							for await (const response of stream) {
 								tokens++;
