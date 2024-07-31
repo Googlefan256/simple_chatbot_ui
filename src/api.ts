@@ -9,6 +9,7 @@ export async function createStream(
 	const stream = await new OpenAI({
 		baseURL,
 		apiKey: "null",
+		dangerouslyAllowBrowser: true,
 	}).chat.completions.create({
 		messages: chat,
 		model: "custom",
