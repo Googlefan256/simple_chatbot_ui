@@ -4,6 +4,7 @@ export interface Settings {
 	api_base_url: string;
 	seed: number;
 	dark: boolean;
+	system_prompt: string;
 }
 
 function defaultSettings(): Settings {
@@ -11,6 +12,7 @@ function defaultSettings(): Settings {
 		api_base_url: "http://localhost:8080",
 		seed: 1234,
 		dark: false,
+		system_prompt: "",
 	};
 }
 
@@ -20,7 +22,10 @@ export function useSettings() {
 	useEffect(() => {
 		const stored = localStorage.getItem("settings");
 		if (stored) {
-			setSettings(JSON.parse(stored));
+			setSettings({
+				...defaultSettings(),
+				...JSON.parse(stored),
+			});
 		}
 		setInitialised(true);
 	}, []);

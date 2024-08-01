@@ -196,6 +196,7 @@ function App() {
 									},
 								],
 								settings.seed,
+								settings.system_prompt,
 							);
 							setCancel(() => () => {
 								stream?.controller.abort();

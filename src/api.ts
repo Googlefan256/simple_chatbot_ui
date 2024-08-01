@@ -4,13 +4,24 @@ export async function createStream(
 	baseURL: string,
 	chat: ChatHistory[],
 	seed: number,
+	system: string,
 ) {
 	const stream = await new OpenAI({
 		baseURL,
 		apiKey: "null",
 		dangerouslyAllowBrowser: true,
 	}).chat.completions.create({
-		messages: chat,
+		messages: [
+			...(system.length === 0
+				? []
+				: [
+						{
+							role: "system" as const,
+							content: system,
+						},
+					]),
+			...chat,
+		],
 		model: "custom",
 		stream: true,
 		seed,

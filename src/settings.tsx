@@ -44,6 +44,21 @@ export function SettingsWindow({
 					/>
 				</label>
 				<label className="block mt-2">
+					<span className="text-sm font-semibold">System Prompt</span>
+					<textarea
+						value={settings.system_prompt}
+						onChange={(e) =>
+							setSettings({
+								...settings,
+								system_prompt: e.target.value,
+							})
+						}
+						className={`border border-gray-300 rounded-md w-full p-2 mt-1 ${
+							settings.dark ? "bg-gray-800 text-white" : ""
+						}`}
+					/>
+				</label>
+				<label className="block mt-2">
 					<span className="text-sm font-semibold">Seed</span>
 					<input
 						type="number"
