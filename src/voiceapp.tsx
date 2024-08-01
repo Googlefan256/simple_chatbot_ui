@@ -75,6 +75,10 @@ export function VoiceApp({
 			}
 		}
 		const run = new SpeechSynthesisUtterance(removeMd(resText));
+		run.rate = 3;
+		run.voice =
+			sound.speech.getVoices().find((x) => x.name == "Google 日本語") ||
+			sound.speech.getVoices()[0];
 		sound.speech.speak(run);
 		await new Promise((resolve) => {
 			const end = (_event: any) => {
