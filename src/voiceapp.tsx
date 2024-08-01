@@ -3,6 +3,7 @@ import { ChatHistory } from "./api";
 import { Settings } from "./settings-hook";
 import { createStream } from "./api";
 import { ChatPiece } from "./textapp";
+import { escapeMarkdown } from "@discordjs/formatters";
 
 function useSound() {
 	const [sound, setSound] = useState<{
@@ -73,7 +74,14 @@ export function VoiceApp({
 				resText += part;
 			}
 		}
-		const run = new SpeechSynthesisUtterance(resText);
+		const run = new SpeechSynthesisUtterance(
+			escapeMarkdown(resText, {
+				numberedList: true,
+				maskedLink: true,
+				bulletedList: true,
+				heading: true,
+			}),
+		);
 		run.voice =
 			sound.speech.getVoices().find((x) => x.name == "Google 日本語") ||
 			sound.speech.getVoices()[0];
