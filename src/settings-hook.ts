@@ -1,10 +1,16 @@
 import { useEffect, useState } from "react";
 
+export type Mode = "text" | "voice";
+
+export const mode: Mode[] = ["text", "voice"];
+
 export interface Settings {
 	api_base_url: string;
 	seed: number;
 	dark: boolean;
 	system_prompt: string;
+	mode: Mode;
+	tokens: number;
 }
 
 function defaultSettings(): Settings {
@@ -13,6 +19,8 @@ function defaultSettings(): Settings {
 		seed: 1234,
 		dark: false,
 		system_prompt: "",
+		mode: "text",
+		tokens: -1,
 	};
 }
 

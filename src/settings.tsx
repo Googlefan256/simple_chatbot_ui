@@ -1,4 +1,4 @@
-import { Settings } from "./settings-hook";
+import { Mode, Settings, mode } from "./settings-hook";
 
 export function SettingsWindow({
 	open,
@@ -42,6 +42,41 @@ export function SettingsWindow({
 							settings.dark ? "bg-gray-800 text-white" : ""
 						}`}
 					/>
+				</label>
+				<label className="block mt-2">
+					<span className="text-sm font-semibold">Tokens</span>
+					<input
+						type="number"
+						value={settings.tokens}
+						onChange={(e) =>
+							setSettings({
+								...settings,
+								tokens: parseInt(e.target.value),
+							})
+						}
+						className={`border border-gray-300 rounded-md w-full p-2 mt-1 ${
+							settings.dark ? "bg-gray-800 text-white" : ""
+						}`}
+					/>
+				</label>
+				<label className="block mt-2">
+					<span className="text-sm font-semibold">Mode</span>
+					<select
+						value={settings.mode}
+						onChange={(e) =>
+							setSettings({
+								...settings,
+								mode: e.target.value as Mode,
+							})
+						}
+						className={`border border-gray-300 rounded-md w-full p-2 mt-1 ${
+							settings.dark ? "bg-gray-800 text-white" : ""
+						}`}
+					>
+						{mode.map((x, i) => (
+							<option key={i}>{x}</option>
+						))}
+					</select>
 				</label>
 				<label className="block mt-2">
 					<span className="text-sm font-semibold">System Prompt</span>
